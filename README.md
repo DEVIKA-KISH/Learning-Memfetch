@@ -1,4 +1,3 @@
-
 # 🧠 Learning-Memfetch: Android Process Memory Acquisition
 
 ![Platform](https://img.shields.io/badge/Platform-Android15-blue)
@@ -6,61 +5,65 @@
 ![Focus](https://img.shields.io/badge/Focus-Mobile_Forensics-red)
 ![Status](https://img.shields.io/badge/Status-Completed-brightgreen)
 
+
+
 ---
 
 ## 🎯 Objective
-Perform **live process memory acquisition** on a **rooted Android 15 (OnePlus 13R)** device using **Memfetch**, targeting a **medical IoT mobile app (EMAY Pulse Oximeter)**.  
+
+Perform **live process memory acquisition** on a **rooted Android 15 (OnePlus 13R)** device using **Memfetch**, targeting a **medical IoT mobile app (EMAY Pulse Oximeter)**.
 This lab demonstrates how sensitive health data remains in memory (heap, stack, static) even after app use — revealing forensic visibility of **data remanence** in Android devices.
 
 ---
 
 ## 🧰 Tools & Environment
 
-| Tool / Device | Purpose |
-|---------------|----------|
-| **OnePlus 13R (Android 15, Kernel 6.1.x)** | Test device (rooted) |
-| **Memfetch (ARM64 build)** | Process memory acquisition utility |
-| **ADB (Android Debug Bridge)** | File transfer & shell access |
-| **EMAY Pulse Oximeter App** | Target process: `com.jack.emaybloodoxygen` |
-| **Linux Host PC** | Analysis & storage of dumps |
+| Tool / Device                              | Purpose                                    |
+| ------------------------------------------ | ------------------------------------------ |
+| **OnePlus 13R (Android 15, Kernel 6.1.x)** | Test device (rooted)                       |
+| **Memfetch (ARM64 build)**                 | Process memory acquisition utility         |
+| **ADB (Android Debug Bridge)**             | File transfer & shell access               |
+| **EMAY Pulse Oximeter App**                | Target process: `com.jack.emaybloodoxygen` |
+| **Linux Host PC**                          | Analysis & storage of dumps                |
 
 ---
 
 ## ⚙️ Step 1 — Setup & Deployment
 
-1. **Push Memfetch binary to device**
-   ```bash
-   adb push memfetch_oneplus /data/local/tmp/memfetch_oneplus
-````
+1. Push Memfetch binary to device
 
-2. **Switch to root shell**
+```
+adb push memfetch_oneplus /data/local/tmp/memfetch_oneplus
+```
 
-   ```bash
-   adb shell
-   su
-   ```
+2. Switch to root shell
 
-3. **Create working directory**
+```
+adb shell
+su
+```
 
-   ```bash
-   mkdir -p /data/local/tmp/emay_plaintext_dk
-   cd /data/local/tmp/emay_plaintext_dk
-   ```
+3. Create working directory
+
+```
+mkdir -p /data/local/tmp/emay_plaintext_dk
+cd /data/local/tmp/emay_plaintext_dk
+```
 
 ---
 
 ## 🔎 Step 2 — Identify Target Process
 
-Locate the **EMAY Pulse Oximeter** process:
+Locate the EMAY Pulse Oximeter process:
 
-```bash
+```
 ps -A | grep emay
 ```
 
 Example output:
 
 ```
-24441   1633  8873448  248780  ... com.jack.emaybloodoxygen
+24441   1633  8873448  248780  … com.jack.emaybloodoxygen
 ```
 
 ![Identifying Target PID](screenshots/2.png)
@@ -72,7 +75,7 @@ Example output:
 
 Attach Memfetch to the process and start dumping:
 
-```bash
+```
 ../memfetch_oneplus 24441
 ```
 
@@ -85,8 +88,7 @@ Memfetch uses ptrace-like read operations to capture live pages from the app pro
 
 ## 📈 Step 4 — Acquisition Progress
 
-Memory regions (stack, heap, .data) are dumped into files such as
-`mem-000.bin`, `map-000.bin`, and an index file `mfetch.lst`.
+Memory regions (stack, heap, .data) are dumped into files such as `mem-000.bin`, `map-000.bin`, and an index file `mfetch.lst`.
 
 ![Memory Dump Progress](screenshots/4.png)
 *Fig-4.1 — Dump in progress; over 3,500 regions successfully captured.*
@@ -97,7 +99,7 @@ Memory regions (stack, heap, .data) are dumped into files such as
 
 List all created dump files:
 
-```bash
+```
 ls -la /data/local/tmp/emay_plaintext_dk
 ```
 
@@ -115,7 +117,7 @@ Expect:
 
 Navigate to `/data/local/tmp` and confirm your directories:
 
-```bash
+```
 ls -la /data/local/tmp
 ```
 
@@ -134,13 +136,13 @@ Contains multiple acquisition sessions:
 
 Transfer dumps to host machine:
 
-```bash
+```
 adb pull /data/local/tmp/emay_plaintext_dk ./emay_plaintext_dk
 ```
 
 Extract readable strings:
 
-```bash
+```
 strings mem-*.bin | grep -a "SpO2"
 strings mem-*.bin | grep -a "PR"
 ```
@@ -154,32 +156,32 @@ Expected: health telemetry fragments such as **SpO₂**, **PR(bpm)**, and timest
 
 ## 📦 Step 8 — Artifacts & Outputs
 
-| Artifact             | Description                      |
-| -------------------- | -------------------------------- |
-| `mem-*.bin`          | Raw memory dumps                 |
-| `map-*.bin`          | Virtual memory maps              |
-| `mfetch.lst`         | Memory region index              |
-| `emay_plaintext_dk/` | Full plaintext capture directory |
-| `emay_sha512_dk/`    | Secondary encrypted/hashed dump  |
+| Artifact             | Description                       |
+| -------------------- | --------------------------------- |
+| `mem-*.bin`          | Raw memory dumps                  |
+| `map-*.bin`          | Virtual memory maps               |
+| `mfetch.lst`         | Memory region index               |
+| `emay_plaintext_dk/` | Full plaintext capture directory  |
+| `emay_sha512_dk/`    | Secondary encrypted / hashed dump |
 
-**Completion message**
+**Completion message:**
 
 ```
 Done (3569 matching). Have a nice day.
 ```
 
-✅ **Successful acquisition confirmed.**
+✅ Successful acquisition confirmed.
 
 ---
 
 ## 🧠 Key Learnings
 
-| Concept                       | Explanation                                                        |
-| ----------------------------- | ------------------------------------------------------------------ |
-| **Memory Forensics**          | Gained hands-on experience with Android volatile memory extraction |
-| **Process Segmentation**      | Differentiated between .data, heap, and stack storage              |
-| **Data Persistence**          | Verified residual plaintext in app memory buffers                  |
-| **Forensic Chain of Custody** | Documented tools, process, and results for reproducibility         |
+| Concept                   | Explanation                                                        |
+| ------------------------- | ------------------------------------------------------------------ |
+| Memory Forensics          | Gained hands-on experience with Android volatile memory extraction |
+| Process Segmentation      | Differentiated between .data, heap, and stack storage              |
+| Data Persistence          | Verified residual plaintext in app memory buffers                  |
+| Forensic Chain of Custody | Documented tools, process, and results for reproducibility         |
 
 ---
 
@@ -187,7 +189,7 @@ Done (3569 matching). Have a nice day.
 
 This experiment reveals that **health data from IoT medical apps** may persist in RAM and remain recoverable after use.
 
-**Recommendations**
+**Recommendations:**
 
 1. Zeroize memory after use (`memset_s()`, `explicit_bzero()`).
 2. Encrypt in-RAM structures for transient health data.
@@ -210,7 +212,7 @@ This experiment reveals that **health data from IoT medical apps** may persist i
 
 ## 🧩 Summary
 
-> Demonstrates **mobile memory forensics**, **IoT data acquisition**, and **forensic investigation of process memory** in a live Android 15 environment — hands-on learning in **reverse engineering, digital forensics, and privacy-focused analysis.**
+Demonstrates mobile memory forensics, IoT data acquisition, and forensic investigation of process memory in a live Android 15 environment — hands-on learning in reverse engineering, digital forensics, and privacy-focused analysis.
 
 ---
 
@@ -219,5 +221,8 @@ This experiment reveals that **health data from IoT medical apps** may persist i
 **Devika Kishor**
 Master’s Student in Cybersecurity | Florida Institute of Technology
 
-and **Learning-WebApp-Security-BurpSuite** repos next (with matching badges + tagline)?
-```
+
+---
+
+
+Would you like me to give you the next **Ghidra malware-analysis `README`** in the same clean, copy-paste style (no Markdown rendering issues, screenshots auto-linked)?
