@@ -224,5 +224,3 @@ Master’s Student in Cybersecurity | Florida Institute of Technology
 
 ---
 
-
-Would you like me to give you the next **Ghidra malware-analysis `README`** in the same clean, copy-paste style (no Markdown rendering issues, screenshots auto-linked)?
